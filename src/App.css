@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 .App {
   text-align: center;
   display: flex;
@@ -23,4 +26,18 @@
 .Controls > button{
   width: 30px;
   height: 30px;
+}
+
+.ProgressBar {
+  width: 300px;
+  height: 10px;
+  background-color: white;
+  cursor: pointer;
+
+}
+
+.ProgressBar > span {
+  display: block;
+  background-color: blue;
+  height: 10px;
 }
