@@ -20,29 +20,6 @@ class App extends Component {
     this.mute = this.mute.bind(this);
     this.showHideSubtitles = this.showHideSubtitles.bind(this);
   }
-
-  componentWillMount() {
-    fetch('http://r.dcs.redcdn.pl/http/o2/atendesoftware/portal/video/atendesoftware/atendesoftware_2a.txt')
-      .then(response => response.text())
-      .then(data => {
-        const subtitles = data.trim().split("\n").map((e)=>{
-          const timestampStartHelper = e.slice(0,12).split(':').map((e) => {return Number(e)}) //timestamp always end after 25 char
-          const timestampEndHelper = e.slice(13,25).split(':').map((e) => {return Number(e)}) //timestamp always end after 25 char
-          const timestampStart = (timestampStartHelper[0] * 3600) +  (timestampStartHelper[1] * 60) + timestampStartHelper[2];
-          const timestampEnd = (timestampEndHelper[0] * 3600) + ( timestampEndHelper[1] * 60) + timestampEndHelper[2];
-          const text = e.slice(26, e.length - 1);
-          return {
-            timestampStart,
-            timestampEnd,
-            text
-          }
-        });
-        this.setState({
-          subtitles
-        });
-      });
-      
-  }
   
   playPause() {
     this.setState({ videoStatus: !this.state.videoStatus });
@@ -66,6 +43,7 @@ class App extends Component {
     this.setState({ muted: !this.state.muted})
   }
 
+  // rewind method
   onProgressBarClick(e) {
     const clickedPosition = e.pageX - e.target.getBoundingClientRect().left;
     const progressBarWidth = e.target.offsetWidth;
@@ -83,7 +61,31 @@ class App extends Component {
     const minutes = num % 60;
     return hours + ":" + Math.floor(minutes);
   }
-
+  
+  componentWillMount() {
+    // fetch subtitles and puts them inside of state
+    fetch('http://r.dcs.redcdn.pl/http/o2/atendesoftware/portal/video/atendesoftware/atendesoftware_2a.txt')
+      .then(response => response.text())
+      .then(data => {
+        const subtitles = data.trim().split("\n").map((e)=>{
+          const timestampStartHelper = e.slice(0,12).split(':').map((e) => {return Number(e)}) //timestamp always end after 25 char
+          const timestampEndHelper = e.slice(13,25).split(':').map((e) => {return Number(e)}) //timestamp always end after 25 char
+          const timestampStart = (timestampStartHelper[0] * 3600) +  (timestampStartHelper[1] * 60) + timestampStartHelper[2];
+          const timestampEnd = (timestampEndHelper[0] * 3600) + ( timestampEndHelper[1] * 60) + timestampEndHelper[2];
+          const text = e.slice(26, e.length - 1);
+          
+          return {
+            timestampStart,
+            timestampEnd,
+            text
+          }
+        });
+        this.setState({
+          subtitles
+        });
+      });
+  }
+  
   componentDidMount() {
     setInterval(() => {
       const currentText = this.state.subtitles.filter((e)=>{
@@ -93,6 +95,7 @@ class App extends Component {
           return false
         }
       })[0];
+      
       this.setState({
         videoTimePercent: this.refs.vidRef ? this.refs.vidRef.currentTime / this.refs.vidRef.duration * 100 : 0,
         videoTime: this.refs.vidRef && this.refs.vidRef.currentTime,
