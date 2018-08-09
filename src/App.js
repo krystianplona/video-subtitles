@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import './App.css';
 
 class App extends Component {
@@ -9,13 +9,41 @@ class App extends Component {
       videoStatus: true,
       videoTime: 0,
       videoTimePercent: 0,
-      muted: true
+      muted: true,
+      subtitles: [],
+      currentText: '',
+      showSubtitles: true
     }
 
-    this.playPause = this.playPause.bind(this)
-    this.reset = this.reset.bind(this)
+    this.playPause = this.playPause.bind(this);
+    this.reset = this.reset.bind(this);
+    this.mute = this.mute.bind(this);
+    this.showHideSubtitles = this.showHideSubtitles.bind(this);
   }
 
+  componentWillMount() {
+    fetch('http://r.dcs.redcdn.pl/http/o2/atendesoftware/portal/video/atendesoftware/atendesoftware_2a.txt')
+      .then(response => response.text())
+      .then(data => {
+        const subtitles = data.trim().split("\n").map((e)=>{
+          const timestampStartHelper = e.slice(0,12).split(':').map((e) => {return Number(e)}) //timestamp always end after 25 char
+          const timestampEndHelper = e.slice(13,25).split(':').map((e) => {return Number(e)}) //timestamp always end after 25 char
+          const timestampStart = (timestampStartHelper[0] * 3600) +  (timestampStartHelper[1] * 60) + timestampStartHelper[2];
+          const timestampEnd = (timestampEndHelper[0] * 3600) + ( timestampEndHelper[1] * 60) + timestampEndHelper[2];
+          const text = e.slice(26, e.length - 1);
+          return {
+            timestampStart,
+            timestampEnd,
+            text
+          }
+        });
+        this.setState({
+          subtitles
+        });
+      });
+      
+  }
+  
   playPause() {
     this.setState({ videoStatus: !this.state.videoStatus });
     if (this.state.videoStatus) {
@@ -28,6 +56,14 @@ class App extends Component {
   reset() {
     this.setState({ videoStatus: false });
     this.refs.vidRef.currentTime = 0;
+  }
+  
+  showHideSubtitles() {
+    this.setState({ showSubtitles: !this.state.showSubtitles})
+  }
+  
+  mute() {
+    this.setState({ muted: !this.state.muted})
   }
 
   onProgressBarClick(e) {
@@ -42,43 +78,52 @@ class App extends Component {
     });
   }
 
-  time_convert(num) {
-    var hours = Math.floor(num / 60);
-    var minutes = num % 60;
+  timeConvert(num) {
+    const hours = Math.floor(num / 60);
+    const minutes = num % 60;
     return hours + ":" + Math.floor(minutes);
   }
 
   componentDidMount() {
     setInterval(() => {
+      const currentText = this.state.subtitles.filter((e)=>{
+        if(this.refs.vidRef.currentTime > e.timestampStart && this.refs.vidRef.currentTime < e.timestampEnd) {
+          return e
+        } else {
+          return false
+        }
+      })[0];
       this.setState({
         videoTimePercent: this.refs.vidRef ? this.refs.vidRef.currentTime / this.refs.vidRef.duration * 100 : 0,
-        videoTime: this.refs.vidRef && this.refs.vidRef.currentTime
+        videoTime: this.refs.vidRef && this.refs.vidRef.currentTime,
+        currentText: currentText ? currentText.text : ''
       })
-    },100)
+    }, 100);
   }
 
   render() {
     const { duration } = this.refs.vidRef ? this.refs.vidRef : 0;
-    const { videoTime, videoTimePercent } = this.state;
+    const { videoTime, videoTimePercent, currentText, showSubtitles, videoSrc, muted } = this.state;
     
     return (
-      <Fragment>
-        <div className="App">
-          <video ref="vidRef" autoPlay="true" loop muted={this.state.muted}>
-              <source src={ this.state.videoSrc } type="video/mp4" />
-          </video>
-          <div className="Controls">
-            <button onClick={this.playPause}></button>
-            <button onClick={this.reset}></button>
-            <div className="ProgressBar" onClick={ (e)=>{this.onProgressBarClick(e)} }>
-              <progress value={this.state.videoTimePercent} max='100' ref="progressBarRef"></progress>
-            </div>
-            <button className="Subtitles"></button>
-            <div>{this.time_convert(videoTime)} / {this.time_convert(duration)}</div>
+      <div className="App">
+        <video ref="vidRef" autoPlay="true" loop muted={muted}>
+            <source src={videoSrc} type="video/mp4" />
+        </video>
+        {
+          currentText && showSubtitles && <div className="Subtitles">{currentText}</div>
+        }
+        <div className="Controls">
+          <button onClick={this.playPause}>P</button>
+          <button onClick={this.reset}>R</button>
+          <div className="ProgressBar" onClick={ (e)=>{this.onProgressBarClick(e)} }>
+            <progress value={videoTimePercent ? videoTimePercent : 0} max='100' ref="progressBarRef"></progress>
           </div>
+          <button onClick={this.showHideSubtitles} className="SubtitlesButton">T</button>
+          <div className="Time">{videoTime && this.timeConvert(videoTime)} / {videoTime && this.timeConvert(duration)}</div>
+          <button onClick={this.mute}>M</button>
         </div>
-        <div>{videoTimePercent ? videoTimePercent : 0}</div>
-      </Fragment>
+      </div>
     );
   }
 }

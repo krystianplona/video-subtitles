@@ -5,10 +5,18 @@
   text-align: center;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   width: 720px;
+  height: 406px;
   margin: 0 auto;
+  padding-bottom: 40px;
   position: relative;
+}
+
+.App > video {
+  position: absolute;
+  top: 0;
+  left: 0
 }
 
 .Controls {
@@ -19,26 +27,54 @@
   bottom: 0;
   left: 0;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
 }
 
-.Controls > button{
-  width: 30px;
-  height: 30px;
+.Controls > button {
+  width: 20px;
+  height: 20px;
+  margin: 0 5px;
+  padding: 0;
+  text-align: center;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
-.ProgressBar {
-  width: 300px;
-  height: 10px;
-  background-color: white;
-  cursor: pointer;
 
+.Controls > button:nth-child(1) > span {
+  width: 3px;
+  height: 10px;
+  display: block;
+  margin: 0 auto;
+}
+
+.Controls > button:nth-child(2) > span {
+  background-color: black;
+  width: 10px;
+  height: 10px;
+  display: block;
+  margin: 0 auto;
 }
 
 .ProgressBar > progress {
   display: block;
   background-color: blue;
   height: 10px;
-  width: 300px;
+  width: 500px;
+  cursor: pointer;
+}
+
+.Time {
+  width: 80px;
+  color: white;
+}
+
+.Subtitles {
+  z-index:2;
+  background-color: rgba(1,1,1,0.5);
+  color: white;
+  padding: 5px;
+
 }
