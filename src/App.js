@@ -9,7 +9,7 @@ class App extends Component {
       videoStatus: true,
       videoTime: 0,
       videoTimePercent: 0,
-
+      muted: true
     }
 
     this.playPause = this.playPause.bind(this)
@@ -31,7 +31,15 @@ class App extends Component {
   }
 
   onProgressBarClick(e) {
-    console.log(e.target)
+    const clickedPosition = e.pageX - e.target.getBoundingClientRect().left;
+    const progressBarWidth = e.target.offsetWidth;
+    const clickedPositionPercent = clickedPosition / progressBarWidth * 100;
+    
+    this.setState({
+      videoTimePercent: clickedPositionPercent
+    },()=>{
+      this.refs.vidRef.currentTime = this.refs.vidRef.duration * (this.state.videoTimePercent / 100)
+    });
   }
 
   time_convert(num) {
@@ -43,7 +51,7 @@ class App extends Component {
   componentDidMount() {
     setInterval(() => {
       this.setState({
-        videoTimePercent: this.refs.vidRef && this.refs.vidRef.currentTime / this.refs.vidRef.duration * 100,
+        videoTimePercent: this.refs.vidRef ? this.refs.vidRef.currentTime / this.refs.vidRef.duration * 100 : 0,
         videoTime: this.refs.vidRef && this.refs.vidRef.currentTime
       })
     },100)
@@ -51,26 +59,25 @@ class App extends Component {
 
   render() {
     const { duration } = this.refs.vidRef ? this.refs.vidRef : 0;
-
+    const { videoTime, videoTimePercent } = this.state;
+    
     return (
       <Fragment>
         <div className="App">
-          <video ref="vidRef" autoPlay="true" loop muted>
+          <video ref="vidRef" autoPlay="true" loop muted={this.state.muted}>
               <source src={ this.state.videoSrc } type="video/mp4" />
           </video>
           <div className="Controls">
             <button onClick={this.playPause}></button>
             <button onClick={this.reset}></button>
             <div className="ProgressBar" onClick={ (e)=>{this.onProgressBarClick(e)} }>
-              <span style={{width: `${this.state.videoTimePercent}%`}}></span>
+              <progress value={this.state.videoTimePercent} max='100' ref="progressBarRef"></progress>
             </div>
             <button className="Subtitles"></button>
-            <div>{this.time_convert(this.state.videoTime)} / { this.time_convert(duration) }</div>
+            <div>{this.time_convert(videoTime)} / {this.time_convert(duration)}</div>
           </div>
         </div>
-        <div>
-          {this.state.videoTimePercent}
-        </div>
+        <div>{videoTimePercent ? videoTimePercent : 0}</div>
       </Fragment>
     );
   }

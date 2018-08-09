@@ -36,8 +36,9 @@
 
 }
 
-.ProgressBar > span {
+.ProgressBar > progress {
   display: block;
   background-color: blue;
   height: 10px;
+  width: 300px;
 }
