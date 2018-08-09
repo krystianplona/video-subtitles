@@ -12,13 +12,15 @@ class App extends Component {
       muted: true,
       subtitles: [],
       currentText: '',
-      showSubtitles: true
+      showSubtitles: true,
+      fullScreen: false
     }
 
     this.playPause = this.playPause.bind(this);
     this.reset = this.reset.bind(this);
     this.mute = this.mute.bind(this);
     this.showHideSubtitles = this.showHideSubtitles.bind(this);
+    this.fullScreen = this.fullScreen.bind(this);
   }
   
   playPause() {
@@ -41,6 +43,10 @@ class App extends Component {
   
   mute() {
     this.setState({ muted: !this.state.muted})
+  }
+  
+  fullScreen() {
+    this.setState({ fullScreen: !this.state.fullScreen })
   }
 
   // rewind method
@@ -106,16 +112,15 @@ class App extends Component {
 
   render() {
     const { duration } = this.refs.vidRef ? this.refs.vidRef : 0;
-    const { videoTime, videoTimePercent, currentText, showSubtitles, videoSrc, muted } = this.state;
+    const { videoTime, videoTimePercent, currentText, showSubtitles, videoSrc, muted, fullScreen } = this.state;
+    const fullScreenClass = fullScreen ? 'Fullsceen' : '';
     
     return (
-      <div className="App">
+      <div className={`App ${fullScreenClass}`}>
         <video ref="vidRef" autoPlay="true" loop muted={muted}>
             <source src={videoSrc} type="video/mp4" />
         </video>
-        {
-          currentText && showSubtitles && <div className="Subtitles">{currentText}</div>
-        }
+        { currentText && showSubtitles && <div className="Subtitles">{currentText}</div>}
         <div className="Controls">
           <button onClick={this.playPause}>P</button>
           <button onClick={this.reset}>R</button>
@@ -125,6 +130,7 @@ class App extends Component {
           <button onClick={this.showHideSubtitles} className="SubtitlesButton">T</button>
           <div className="Time">{videoTime && this.timeConvert(videoTime)} / {videoTime && this.timeConvert(duration)}</div>
           <button onClick={this.mute}>M</button>
+          <button onClick={this.fullScreen}>F</button>
         </div>
       </div>
     );
